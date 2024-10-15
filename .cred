@@ -1,0 +1,9 @@
+DB_HOST=mysql-305b096c-projeto-raphael-lafer.d.aivencloud.com
+DB_USER=avnadmin
+DB_PASSWORD=AVNS_3s8x54DK9Wf1YD_VsMa
+DB_NAME=db_biblioteca
+DB_PORT=28166
+MONGO_URI = mongodb+srv://admin:admin@progeficaz.z7ujs.mongodb.net/aps_3
+
+# Caminho para o certificado SSL
+SSL_CA_PATH=/certificado_aiven
