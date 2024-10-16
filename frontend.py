@@ -23,6 +23,9 @@ def fazer_requisicao(endpoint, method="GET", params=None, data=None):
 
         if response.status_code == 200:
             return response.json()
+        elif response.status_code == 201:
+            st.success("Operação realizada com sucesso!")
+            return response.json()
         elif response.status_code == 404:
             st.warning("⚠️ Recurso não encontrado.")
         elif response.status_code == 500:
@@ -41,30 +44,144 @@ st.markdown("<h1 style='text-align: center; color: #2E86C1;'>🚲 Empréstimo de
 st.markdown("<h4 style='text-align: center; color: #5D6D7E;'>Encontre a bike ideal para você</h4>", unsafe_allow_html=True)
 st.write("")
 
-# Sidebar para os filtros e pesquisa
-st.sidebar.header("🔍 Filtros de Pesquisa")
-if st.sidebar.button("🔍 Buscar Bikes"):
+# Sidebar para os filtros e opções
+opcao = st.sidebar.selectbox(
+    "Escolha uma funcionalidade",
+    ["Gerenciar Usuários", "Gerenciar Bikes"]
+)
 
-    bikes = fazer_requisicao('bikes')
+# USUARIOS
+if opcao == "Gerenciar Usuários":
+    st.sidebar.header("👤 Gestão de Usuários")
 
-    # Verifica se há bikes disponíveis e exibe a mensagem de resultado
-    if bikes and 'bikes' in bikes:
-        st.write("### 🛒 Resultados de busca:")
+    # Opções para visualizar ou gerenciar usuários
+    acao_usuario = st.sidebar.selectbox("Ação", ["Visualizar Usuários", "Adicionar Usuário", "Atualizar Usuário", "Excluir Usuário"])
 
-        # Itera sobre as bikes retornadas pela API e exibe os detalhes em cards
-        for bike in bikes['bikes']:
-            if 'marca' in bike and 'modelo' in bike:
-                # Exibe cada bike em uma estrutura de card para visualização clean
-                st.markdown(
-                    f"""
-                    <div style='border: 1px solid #E0E0E0; padding: 15px; border-radius: 10px; margin-bottom: 10px; background-color: #F9F9F9;'>
-                        <h4>Marca: {bike['marca']}</h4>
-                        <p>Modelo: {bike['modelo']}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+    if acao_usuario == "Visualizar Usuários":
+        st.header("👥 Lista de Usuários")
+        usuarios = fazer_requisicao('usuarios')
+
+        if usuarios and 'usuarios' in usuarios:
+            for usuario in usuarios['usuarios']:
+                st.markdown(f"**ID:** {usuario['id']}, **Nome:** {usuario['nome']}, **CPF:** {usuario['cpf']}")
+        else:
+            st.warning("⚠️ Nenhum usuário encontrado.")
+
+    elif acao_usuario == "Adicionar Usuário":
+        st.header("➕ Adicionar Novo Usuário")
+        nome = st.text_input("Nome")
+        cpf = st.text_input("CPF")
+        data_nascimento = st.date_input("Data de Nascimento")
+
+        if st.button("Adicionar Usuário"):
+            if nome and cpf and data_nascimento:
+                dados_usuario = {
+                    "nome": nome,
+                    "cpf": cpf,
+                    "data_de_nascimento": str(data_nascimento)
+                }
+                fazer_requisicao('usuarios', method="POST", data=dados_usuario)
             else:
-                st.warning("⚠️ Dados da bike incompletos.")
-    else:
-        st.warning("⚠️ Nenhuma bike disponível no momento.")
+                st.error("⚠️ Todos os campos são obrigatórios.")
+
+    elif acao_usuario == "Atualizar Usuário":
+        st.header("✏️ Atualizar Usuário")
+        user_id = st.text_input("ID do Usuário para atualizar")
+        novo_nome = st.text_input("Novo Nome")
+        novo_cpf = st.text_input("Novo CPF")
+        nova_data_nascimento = st.date_input("Nova Data de Nascimento")
+
+        if st.button("Atualizar Usuário"):
+            if user_id and novo_nome and novo_cpf and nova_data_nascimento:
+                dados_atualizados = {
+                    "nome": novo_nome,
+                    "cpf": novo_cpf,
+                    "data_de_nascimento": str(nova_data_nascimento)
+                }
+                fazer_requisicao(f'usuarios/{user_id}', method="PUT", data=dados_atualizados)
+            else:
+                st.error("⚠️ Todos os campos são obrigatórios.")
+
+    elif acao_usuario == "Excluir Usuário":
+        st.header("❌ Excluir Usuário")
+        user_id = st.text_input("ID do Usuário para excluir")
+
+        if st.button("Excluir Usuário"):
+            if user_id:
+                response = fazer_requisicao(f'usuarios/{user_id}', method="DELETE")
+                if response:
+                    st.success("✅ Bike excluída com sucesso!")
+            else:
+                st.warning("⚠️ O ID da bike é obrigatório.")
+
+# ------------------------------ SEÇÃO DE GERENCIAMENTO DE BIKES ------------------------------
+elif opcao == "Gerenciar Bikes":
+    st.sidebar.header("🚲 Gestão de Bikes")
+
+    # Opções para visualizar ou gerenciar bikes
+    acao_bike = st.sidebar.selectbox("Ação", ["Visualizar Bikes", "Adicionar Bike", "Atualizar Bike", "Excluir Bike"])
+
+    if acao_bike == "Visualizar Bikes":
+        st.header("🚲 Lista de Bikes")
+        bikes = fazer_requisicao('bikes')
+
+        if bikes and 'bikes' in bikes:
+            for bike in bikes['bikes']:
+                st.markdown(f"**ID:** {bike['id']}, **Marca:** {bike['marca']}, **Modelo:** {bike['modelo']}, **Cidade:** {bike['cidade']}")
+        else:
+            st.warning("⚠️ Nenhuma bike encontrada.")
+
+    elif acao_bike == "Adicionar Bike":
+        st.header("➕ Adicionar Nova Bike")
+        marca = st.text_input("Marca da bike:")
+        modelo = st.text_input("Modelo da bike:")
+        cidade = st.text_input("Cidade:")
+
+        if st.button("Adicionar Bike"):
+            if marca and modelo and cidade:
+                bike_data = {
+                    "marca": marca,
+                    "modelo": modelo,
+                    "cidade": cidade
+                }
+                response = fazer_requisicao('bikes', method="POST", data=bike_data)
+                if response:
+                    st.success("✅ Bike adicionada com sucesso!")
+            else:
+                st.warning("⚠️ Todos os campos são obrigatórios.")
+
+    elif acao_bike == "Atualizar Bike":
+        st.header("✏️ Atualizar Bike")
+        id_bike = st.text_input("ID da Bike para atualizar:")
+        marca_editar = st.text_input("Nova Marca:")
+        modelo_editar = st.text_input("Novo Modelo:")
+        cidade_editar = st.text_input("Nova Cidade:")
+
+        if st.button("Atualizar Bike"):
+            if id_bike and (marca_editar or modelo_editar or cidade_editar):
+                data_atualizar = {}
+                if marca_editar:
+                    data_atualizar['marca'] = marca_editar
+                if modelo_editar:
+                    data_atualizar['modelo'] = modelo_editar
+                if cidade_editar:
+                    data_atualizar['cidade'] = cidade_editar
+
+                response = fazer_requisicao(f'bikes/{id_bike}', method="PUT", data=data_atualizar)
+                if response:
+                    st.success("✅ Bike atualizada com sucesso!")
+            else:
+                st.warning("⚠️ Preencha o ID e ao menos um campo para atualização.")
+
+    elif acao_bike == "Excluir Bike":
+        st.header("❌ Excluir Bike")
+        id_bike = st.text_input("ID da Bike para excluir")
+
+        if st.button("Excluir Bike"):
+            if id_bike:
+                response = fazer_requisicao(f'bikes/{id_bike}', method="DELETE")
+                if response:
+                    st.success("✅ Bike excluída com sucesso!")
+            else:
+                st.warning("⚠️ O ID da bike é obrigatório.")
+
