@@ -1,71 +1,70 @@
-import streamlit as st  # Streamlit é utilizado para criar interfaces web 
-import pandas as pd  
-import requests  # Requests é utilizado para fazer requisições HTTP (GET, POST, etc.)
+import streamlit as st
+import requests
 
 # Base URL da API do backend (Flask)
 BASE_URL = "http://127.0.0.1:5000"
-# Definimos a base URL onde o backend está rodando (localmente no endereço 127.0.0.1 na porta 5000).
-# Todas as requisições da aplicação serão enviadas para esse endpoint (ou serviço), concatenando o recurso desejado.
 
 # Função genérica para fazer requisições ao backend
 def fazer_requisicao(endpoint, method="GET", params=None, data=None):
-    # Constrói a URL completa concatenando o endpoint específico com a base URL
     url = f"{BASE_URL}/{endpoint}"
 
-    # Monta a requisição de acordo com o método HTTP fornecido
     try:
         if method == "GET":
             response = requests.get(url, params=params)
-            # Método GET: Envia os parâmetros da requisição (params) como query strings na URL.
-            # Exemplo: /imoveis?tipo_imovel=Casa&preco_min=200000&preco_max=1000000
-
         elif method == "POST":
             response = requests.post(url, json=data)
-            # Método POST: Envia os dados no corpo da requisição em formato JSON para criar novos recursos no backend.
-            # Exemplo: POST /imoveis para criar um novo imóvel, enviando os detalhes no corpo da requisição.
-
         elif method == "PUT":
             response = requests.put(url, json=data)
-            # Método PUT: Envia os dados no corpo da requisição em formato JSON para atualizar um recurso existente.
-
         elif method == "DELETE":
             response = requests.delete(url, params=params)
-            # Método DELETE: Envia parâmetros na URL para deletar um recurso específico no backend.
-
         else:
             st.error("Método HTTP não suportado.")
-            # Caso um método HTTP não suportado seja passado, exibe um erro no frontend do Streamlit.
+            return None
 
-        # Verifica o status HTTP da resposta
         if response.status_code == 200:
-            return response.json()  # Resposta 200 (OK): Retorna o corpo da resposta como um JSON (dicionário Python).
+            return response.json()
         elif response.status_code == 404:
             st.warning("⚠️ Recurso não encontrado.")
-            # Se o status for 404 (Not Found), exibe um aviso de que o recurso não foi encontrado.
         elif response.status_code == 500:
             st.error("⚠️ Erro interno do servidor.")
-            # Se o status for 500 (Internal Server Error), exibe um erro genérico de servidor.
         else:
             st.error(f"⚠️ Erro: {response.status_code} - {response.text}")
-            # Para outros códigos de status, exibe um erro genérico mostrando o código e a mensagem da resposta.
 
-        return None  # Se não houver sucesso, retorna None para indicar falha.
+        return None
 
     except Exception as e:
         st.error(f"⚠️ Erro de conexão: {e}")
-        # Captura e exibe exceções, como erros de conexão ou outros problemas ao tentar fazer a requisição.
         return None
 
-st.title("Emprestimo de bikes")
-st.subheader("Encontre a bike ideal para você!!!")
+# Título principal com layout centralizado e espaçamento
+st.markdown("<h1 style='text-align: center; color: #2E86C1;'>🚲 Empréstimo de Bikes</h1>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center; color: #5D6D7E;'>Encontre a bike ideal para você</h4>", unsafe_allow_html=True)
+st.write("")
 
+# Sidebar para os filtros e pesquisa
 st.sidebar.header("🔍 Filtros de Pesquisa")
+if st.sidebar.button("🔍 Buscar Bikes"):
 
-if st.sidebar.button("Buscar Bikes"):
-    bikes = fazer_requisicao('bikes')  # Corrigido aqui
-    if bikes:
-        st.write(bikes)  # Exibe a resposta completa para verificar a estrutura
+    bikes = fazer_requisicao('bikes')
+
+    # Verifica se há bikes disponíveis e exibe a mensagem de resultado
+    if bikes and 'bikes' in bikes:
+        st.write("### 🛒 Resultados de busca:")
+
+        # Itera sobre as bikes retornadas pela API e exibe os detalhes em cards
         for bike in bikes['bikes']:
-            st.write(f" Marca: {bike['marca']}, Modelo: {bike['modelo']}")
-            if st.button(f"Selecionar {bike['modelo']}"):
-                st.success(f"Você selecionou a bike {bike['modelo']} para o empréstimo!")
+            if 'marca' in bike and 'modelo' in bike:
+                # Exibe cada bike em uma estrutura de card para visualização clean
+                st.markdown(
+                    f"""
+                    <div style='border: 1px solid #E0E0E0; padding: 15px; border-radius: 10px; margin-bottom: 10px; background-color: #F9F9F9;'>
+                        <h4>Marca: {bike['marca']}</h4>
+                        <p>Modelo: {bike['modelo']}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            else:
+                st.warning("⚠️ Dados da bike incompletos.")
+    else:
+        st.warning("⚠️ Nenhuma bike disponível no momento.")
