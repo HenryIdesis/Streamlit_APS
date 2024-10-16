@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_pymongo import PyMongo
 import os
 from bson.objectid import ObjectId
+from datetime import datetime, timedelta
 
 # Carrega as variáveis de ambiente do arquivo .cred (se disponível)
 
@@ -165,6 +166,7 @@ def get_all_emprestimos():
     dados_emprestimos = mongo.db.emprestimos.find(filtro, projecao)
 
     emprestimos = []
+
     for emprestimo in dados_emprestimos:
         emprestimo['_id'] = str(emprestimo['_id'])  
         emprestimos.append(emprestimo)

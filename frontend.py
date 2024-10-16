@@ -47,7 +47,7 @@ st.write("")
 # Sidebar para os filtros e opções
 opcao = st.sidebar.selectbox(
     "Escolha uma funcionalidade",
-    ["Gerenciar Usuários", "Gerenciar Bikes"]
+    ["Gerenciar Usuários", "Gerenciar Bikes", "Gerenciar Empréstimos"]
 )
 
 # USUARIOS
@@ -114,7 +114,7 @@ if opcao == "Gerenciar Usuários":
             else:
                 st.warning("⚠️ O ID da bike é obrigatório.")
 
-# ------------------------------ SEÇÃO DE GERENCIAMENTO DE BIKES ------------------------------
+# BIKES
 elif opcao == "Gerenciar Bikes":
     st.sidebar.header("🚲 Gestão de Bikes")
 
@@ -184,4 +184,47 @@ elif opcao == "Gerenciar Bikes":
                     st.success("✅ Bike excluída com sucesso!")
             else:
                 st.warning("⚠️ O ID da bike é obrigatório.")
+
+# EMPRESTIMOS
+if opcao == "Gerenciar Empréstimos":
+    st.sidebar.header("📄 Gestão de Empréstimos")
+
+    # Opções para visualizar ou gerenciar empréstimos
+    acao_emprestimo = st.sidebar.selectbox("Ação", ["Visualizar Empréstimos", "Criar Empréstimo", "Finalizar Empréstimo"])
+
+    if acao_emprestimo == "Visualizar Empréstimos":
+        st.header("📄 Lista de Empréstimos")
+        emprestimos = fazer_requisicao('emprestimos')
+
+        if emprestimos and 'emprestimos' in emprestimos:
+            for emprestimo in emprestimos['emprestimos']:
+                st.markdown(f"**ID Empréstimo:** {emprestimo['_id']}, **Usuário:** {emprestimo['usuario_id']}, **Bike:** {emprestimo['bike_id']}, **Data de aluguel:** {emprestimo['data_aluguel']}")
+        else:
+            st.warning("⚠️ Nenhum empréstimo encontrado.")
+
+    elif acao_emprestimo == "Criar Empréstimo":
+        st.header("➕ Criar Novo Empréstimo")
+        user_id = st.text_input("ID do Usuário")
+        bike_id = st.text_input("ID da Bike")
+
+        if st.button("Criar Empréstimo"):
+            if user_id and bike_id:
+                dados_emprestimo = {
+                    "usuario_id": user_id,
+                    "bike_id": bike_id
+                }
+                fazer_requisicao(f'emprestimos/usuarios/{user_id}/bikes/{bike_id}', method="POST", data=dados_emprestimo)
+            else:
+                st.error("⚠️ Todos os campos são obrigatórios.")
+
+    elif acao_emprestimo == "Finalizar Empréstimo":
+        st.header("❌ Finalizar Empréstimo")
+        emprestimo_id = st.text_input("ID do Empréstimo para finalizar")
+
+        if st.button("Finalizar Empréstimo"):
+            if emprestimo_id:
+                fazer_requisicao(f'emprestimos/{emprestimo_id}', method="DELETE", data={"status": "finalizado"})
+            else:
+                st.warning("⚠️ O ID do empréstimo é obrigatório.")
+
 
