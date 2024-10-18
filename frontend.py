@@ -127,7 +127,7 @@ elif opcao == "Gerenciar Bikes":
 
         if bikes and 'bikes' in bikes:
             for bike in bikes['bikes']:
-                st.markdown(f"**ID:** {bike['id']}, **Marca:** {bike['marca']}, **Modelo:** {bike['modelo']}, **Cidade:** {bike['cidade']}")
+                st.markdown(f"**ID:** {bike['id']}, **Marca:** {bike['marca']}, **Modelo:** {bike['modelo']}, **Cidade:** {bike['cidade']}, **Status:** {bike['status']}")
         else:
             st.warning("⚠️ Nenhuma bike encontrada.")
 
