@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Base URL da API do backend (Flask)
-BASE_URL = "https://deploy-aps.onrender.com"
+BASE_URL = "https://deploy-aps-1.onrender.com/"
 
 # Função genérica para fazer requisições ao backend
 def fazer_requisicao(endpoint, method="GET", params=None, data=None):
